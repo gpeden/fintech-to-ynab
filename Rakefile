@@ -4,3 +4,8 @@
 require_relative 'config/application'
 
 Rails.application.load_tasks
+
+desc 'Import from bank accounts to YNAB'
+task :import do
+  sh "rails r './import.rb'"
+end
