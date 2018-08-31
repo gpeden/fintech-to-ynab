@@ -15,3 +15,5 @@
 /coverage
 .byebug_history
 .env
+.ruby-version
+Gemfile.lock
