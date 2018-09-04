@@ -1,9 +1,13 @@
 class YNAB::BulkTransactionCreator
-  BATCH_SIZE = 20.freeze
 
   def initialize(transactions, budget_id: nil, account_id: nil)
     @transactions = transactions
     @client = YNAB::Client.new(ENV['YNAB_ACCESS_TOKEN'], budget_id, account_id)
+    @batch_size = Integer(ENV['BATCH_SIZE'])
+    if @batch_size == nil
+      then @batch_size = 20.freeze
+    end
+
   end
 
   def create
@@ -12,12 +16,17 @@ class YNAB::BulkTransactionCreator
       return false
     end
 
-    batches = (@transactions.size.to_f / BATCH_SIZE).ceil
-    per_batch = @transactions.size / batches
+    if @batch_size > 0
+      batches = (@transactions.size.to_f / @batch_size).ceil
+    else
+      # Batch size <= 0 means 'no batching'
+      batches = 1
+      @batch_size = @transactions.size
+    end
 
     Rails.logger.info("Splitting #{@transactions.size} transactions into #{batches} batches")
 
-    @transactions.each_slice(BATCH_SIZE).with_index do |transactions, index|
+    @transactions.each_slice(@batch_size).with_index do |transactions, index|
       Rails.logger.info("Processing batch #{index + 1} of #{batches}")
 
       transactions_to_create = []
